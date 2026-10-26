@@ -8,7 +8,7 @@ Ts = 0.01;              % 10 ms sample time (matching MicroOS 100 Hz rate)
 % Create time vector and generate the square wave
 t = 0:Ts:t_end;
 % square() generates a periodic square wave with values +1 and -1
-voltage = 10 * square(2 * pi * f * t); 
+voltage = 2.5 * square(2 * pi * f * t) + 2.5; 
 
 % Create the plot
 figure;
@@ -20,8 +20,8 @@ xlabel('Time [s]', 'FontSize', 11);
 ylabel('Motor Voltage [V]', 'FontSize', 11);
 
 % Set axes limits to show the 10V pulse within the 12V hardware limit
-ylim([-12 12]);
-xlim([0 t_end]);
+ylim([-1 6]);
+xlim([-1 t_end]);
 grid on;
 
 % Export as a vector PDF for crisp rendering in your LaTeX report
