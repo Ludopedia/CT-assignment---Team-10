@@ -1,17 +1,3 @@
-/*
- * MECOTRON TUTORIAL
- *
- * This is a template to get you started in the course of the tutorial on the
- * control theory platforms, a.k.a. the MECOtrons.s
- * The tasks of the tutorial session will guide you through this template and
- * ask you to make use of the platform's capabilities in a step-by-step fashion.
- *
- * Every function in this template comes with an opening comment that describes
- * its purpose and functionality. Please also pay attention to the remarks that
- * are made in comment blocks.
- *
- */
-
 #include "robot.h"
 
 bool Robot::init() {
@@ -37,7 +23,7 @@ void Robot::control() {
         // 0.5 Hz period = 2 seconds = 200 ticks
         // 5 repetitions = 10 seconds = 1000 ticks
         if (tick < 1000) {
-            // For the first half of the period (100 ticks), apply 10V. Else -10V.
+            // For the first half of the period (100 ticks), apply 5V. Else 0V.
             if ((tick % 200) < 100) {
                 u_k = 5.0;
             } else {
