@@ -1,0 +1,91 @@
+/*
+ * MECOTRON TUTORIAL
+ *
+ * This is a template to get you started in the course of the tutorial on the
+ * control theory platforms, a.k.a. the MECOtrons.s
+ * The tasks of the tutorial session will guide you through this template and
+ * ask you to make use of the platform's capabilities in a step-by-step fashion.
+ *
+ * Every function in this template comes with an opening comment that describes
+ * its purpose and functionality. Please also pay attention to the remarks that
+ * are made in comment blocks.
+ *
+ */
+
+#include "robot.h"
+
+bool Robot::init() {
+  MECOtron::init(); // Initialize the MECOtron
+
+  // Initializing the robot's specific variables
+  for(int k=0; k<2; k++){
+    x[k] = 0.0;   // Set all components of the vector (float array) x to 0 as initialization
+  }
+
+  return true;
+}
+
+void Robot::control() {
+    // Static counter to keep track of time (persists across 100Hz function calls)
+    static int tick = 0; 
+    float u_k = 0.0;
+
+    if(controlEnabled()) {
+        LED1(ON);
+        LED2(OFF);
+
+        // 0.5 Hz period = 2 seconds = 200 ticks
+        // 5 repetitions = 10 seconds = 1000 ticks
+        if (tick < 1000) {
+            // For the first half of the period (100 ticks), apply 10V. Else -10V.
+            if ((tick % 200) < 100) {
+                u_k = 5.0;
+            } else {
+                u_k = 0;
+            }
+            tick++; // Advance timer
+        } else {
+            // Stop the cart after 5 cycles are complete
+            u_k = 0.0;
+        }
+
+        // Apply exactly the same voltage to both motors to prevent turning
+        setVoltageMotorA(u_k);
+        setVoltageMotorB(u_k);
+
+    } else {
+        LED1(OFF);
+        LED2(ON);
+        setVoltageMotorA(0.0); 
+        setVoltageMotorB(0.0); 
+        tick = 0; // Reset timer so you can rerun the experiment by toggling Button 0
+    }
+
+    // Read wheel speeds for identification
+    float speed_A = getSpeedMotorA();
+    float speed_B = getSpeedMotorB();
+
+    // Send data to QRoboticsCenter channels so the GPIO recorder can capture them
+    writeValue(0, u_k);      // Channel 0: Input Voltage
+    writeValue(1, speed_A);  // Channel 1: Motor A Speed
+    writeValue(2, speed_B);  // Channel 2: Motor B Speed
+}
+
+bool Robot::controlEnabled() {
+  return _button_states[0];       // The control is enabled if the state of button 0 is true
+}
+
+void Robot::button0callback() {
+  if(toggleButton(0)) {           // Switches the state of button 0 and checks if the new state is true
+    message("Robot enabled.");    // Display a message in the status bar of QRoboticsCenter
+  }
+  else {
+    message("Robot disabled.");
+  }
+}
+
+void Robot::button1callback() {
+  toggleButton(1);
+  init();                         // Reset the MECOtron and reinitialize the Robot object
+  message("Reset.");
+}
