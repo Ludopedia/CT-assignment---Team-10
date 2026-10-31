@@ -4,9 +4,6 @@ bool Robot::init() {
   MECOtron::init(); // Initialize the MECOtron
 
   // Initializing the robot's specific variables
-  for(int k=0; k<2; k++){
-    x[k] = 0.0;   // Set all components of the vector (float array) x to 0 as initialization
-  }
 
   return true;
 }
