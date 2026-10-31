@@ -1,0 +1,32 @@
+clear all; close all; clc;
+
+K_sys = 1.9647;
+tau   = 0.0284;
+Td    = 0.02; % 20 ms vertraging (10ms ZOH + 10ms MicroOS)
+
+s = tf('s');
+Gs = K_sys / (tau * s + 1);
+Gs.InputDelay = Td; 
+
+PM  = 60;
+APL = 10;
+phi_target = -180 + PM + APL;
+
+phase_eq = @(w) -atand(w * tau) - (w * Td * 180/pi); 
+w_c = fzero(@(w) phase_eq(w) - phi_target, 50);
+
+fprintf('Cross-over frequency (w_c) : %.4f rad/s\n', w_c);
+
+Ti = tand(90 - APL) / w_c;
+fprintf('Integratietijd (Ti)        : %.4f s\n', Ti);
+
+D_unscaled = (Ti * s + 1) / (Ti * s);
+
+mag_at_wc = abs(squeeze(freqresp(Gs * D_unscaled, w_c)));
+Kp = 1 / mag_at_wc;
+fprintf('Proportionele winst (Kp)   : %.4f\n', Kp);
+
+Ds = Kp * D_unscaled;
+
+figure;
+margin(Ds * Gs);
