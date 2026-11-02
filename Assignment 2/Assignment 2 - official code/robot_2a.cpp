@@ -1,4 +1,4 @@
-#include "robot_2a.h"
+#include "robot.h"
 
 bool Robot::init() {
   MECOtron::init(); 
@@ -110,7 +110,7 @@ bool Robot::controlEnabled() {
 
 void Robot::button0callback() {
   if(toggleButton(0)) {           
-    message("PI Experiment (2a) started.");    
+    message("PI Experiment (2a/2b) started.");    
   } else {
     message("Experiment disabled.");
   }
