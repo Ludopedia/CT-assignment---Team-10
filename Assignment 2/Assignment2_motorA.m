@@ -8,8 +8,8 @@ s = tf('s');
 Gs = K_sys / (tau * s + 1);
 Gs.InputDelay = Td; 
 
-PM  = 60;
-APL = 10;
+PM  = 45;
+APL = 15;
 phi_target = -180 + PM + APL;
 
 phase_eq = @(w) -atand(w * tau) - (w * Td * 180/pi); 

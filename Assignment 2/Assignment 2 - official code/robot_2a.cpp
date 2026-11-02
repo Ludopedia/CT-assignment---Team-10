@@ -12,9 +12,14 @@ void Robot::control() {
     static float integral_error_A = 0.0;
     static float integral_error_B = 0.0;
     
-    // PI-parameters uit MATLAB
-    const float Kp = 0.8133;
-    const float Ti = 0.1121;
+    // PI-parameters Motor A (uit MATLAB)
+    const float Kp_A = 0.8581;  // Kp voor Motor A
+    const float Ti_A = 0.0659;  // Ti voor Motor A
+
+    // PI-parameters Motor B (uit MATLAB)
+    const float Kp_B = 0.9090;  
+    const float Ti_B = 0.0682;  
+
     const float Ts = 0.01;         // 100Hz = 10ms sampletijd
     const float max_voltage = 12.0;
 
@@ -42,7 +47,7 @@ void Robot::control() {
         // --- 3. PI-REGELAAR MOTOR A ---
         float error_A = ref_velocity - speed_A;
         integral_error_A += error_A * Ts;
-        u_k_A = Kp * error_A + (Kp / Ti) * integral_error_A;
+        u_k_A = Kp_A * error_A + (Kp_A / Ti_A) * integral_error_A;
 
         // Anti-windup Motor A
         if (u_k_A > max_voltage) {
@@ -56,7 +61,7 @@ void Robot::control() {
         // --- 4. PI-REGELAAR MOTOR B ---
         float error_B = ref_velocity - speed_B;
         integral_error_B += error_B * Ts;
-        u_k_B = Kp * error_B + (Kp / Ti) * integral_error_B;
+        u_k_B = Kp_B * error_B + (Kp_B / Ti_B) * integral_error_B;
 
         // Anti-windup Motor B
         if (u_k_B > max_voltage) {
