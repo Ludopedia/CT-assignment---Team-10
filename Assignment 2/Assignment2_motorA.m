@@ -30,3 +30,4 @@ Ds = Kp * D_unscaled;
 
 figure;
 margin(Ds * Gs);
+grid on;

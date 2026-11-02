@@ -7,22 +7,26 @@ bool Robot::init() {
 
 void Robot::control() {
     static int tick = 0; 
-    static float integral_error = 0.0;
     
-    // Jouw PI-parameters uit MATLAB
+    // Aparte geheugenwaarden (integratoren) voor motor A en B
+    static float integral_error_A = 0.0;
+    static float integral_error_B = 0.0;
+    
+    // PI-parameters uit MATLAB
     const float Kp = 0.8133;
     const float Ti = 0.1121;
     const float Ts = 0.01;         // 100Hz = 10ms sampletijd
     const float max_voltage = 12.0;
 
-    float u_k = 0.0;
+    float u_k_A = 0.0;
+    float u_k_B = 0.0;
     float ref_velocity = 0.0;
 
     if(controlEnabled()) {
         LED1(ON);
         LED2(OFF);
 
-        // 1. Referentieprofiel: Eerst 0.5s stil, dan constante stap
+        // 1. Referentieprofiel: Eerst 0.5s stilstand, daarna stap naar 5 rad/s
         if (tick < 50) {
             ref_velocity = 0.0; // Eerste 0.5s (50 ticks)
         } else if (tick < 500) {
@@ -31,36 +35,50 @@ void Robot::control() {
             ref_velocity = 0.0; // Stop na 5 seconden
         }
 
-        // 2. Meting inlezen
+        // 2. Metingen inlezen per motor
         float speed_A = getSpeedMotorA();
         float speed_B = getSpeedMotorB();
-        float measured_velocity = (speed_A + speed_B) / 2.0;
 
-        // 3. PI-Algoritme
-        float error = ref_velocity - measured_velocity;
-        integral_error += error * Ts; // Integreren
+        // --- 3. PI-REGELAAR MOTOR A ---
+        float error_A = ref_velocity - speed_A;
+        integral_error_A += error_A * Ts;
+        u_k_A = Kp * error_A + (Kp / Ti) * integral_error_A;
 
-        u_k = Kp * error + (Kp / Ti) * integral_error;
-
-        // 4. Anti-Windup en Voltage limiet
-        if (u_k > max_voltage) {
-            u_k = max_voltage;
-            integral_error -= error * Ts; // Stop integratie
-        } else if (u_k < -max_voltage) {
-            u_k = -max_voltage;
-            integral_error -= error * Ts; // Stop integratie
+        // Anti-windup Motor A
+        if (u_k_A > max_voltage) {
+            u_k_A = max_voltage;
+            integral_error_A -= error_A * Ts;
+        } else if (u_k_A < -max_voltage) {
+            u_k_A = -max_voltage;
+            integral_error_A -= error_A * Ts;
         }
 
-        // 5. Motoren aansturen
-        setVoltageMotorA(u_k);
-        setVoltageMotorB(u_k);
+        // --- 4. PI-REGELAAR MOTOR B ---
+        float error_B = ref_velocity - speed_B;
+        integral_error_B += error_B * Ts;
+        u_k_B = Kp * error_B + (Kp / Ti) * integral_error_B;
+
+        // Anti-windup Motor B
+        if (u_k_B > max_voltage) {
+            u_k_B = max_voltage;
+            integral_error_B -= error_B * Ts;
+        } else if (u_k_B < -max_voltage) {
+            u_k_B = -max_voltage;
+            integral_error_B -= error_B * Ts;
+        }
+
+        // 5. Motoren onafhankelijk aansturen
+        setVoltageMotorA(u_k_A);
+        setVoltageMotorB(u_k_B);
 
         tick++;
 
-        // 6. Data sturen naar QRoboticsCenter voor de plots in je verslag
-        writeValue(0, ref_velocity);      // Kanaal 0: De stap referentie
-        writeValue(1, measured_velocity); // Kanaal 1: De werkelijke snelheid
-        writeValue(2, u_k);               // Kanaal 2: De motorspanning (control signal)
+        // 6. Data sturen naar QRoboticsCenter
+        writeValue(0, ref_velocity); // Kanaal 0: Referentie
+        writeValue(1, speed_A);      // Kanaal 1: Snelheid Motor A
+        writeValue(2, speed_B);      // Kanaal 2: Snelheid Motor B
+        writeValue(3, u_k_A);        // Kanaal 3: Motorspanning Motor A
+        writeValue(4, u_k_B);        // Kanaal 4: Motorspanning Motor B
 
     } else {
         LED1(OFF);
@@ -68,12 +86,16 @@ void Robot::control() {
         setVoltageMotorA(0.0); 
         setVoltageMotorB(0.0); 
         
+        // Reset tijdteller en integratoren
         tick = 0; 
-        integral_error = 0.0;
+        integral_error_A = 0.0;
+        integral_error_B = 0.0;
         
         writeValue(0, 0.0);
         writeValue(1, 0.0);
         writeValue(2, 0.0);
+        writeValue(3, 0.0);
+        writeValue(4, 0.0);
     }
 }
 
