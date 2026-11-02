@@ -155,8 +155,10 @@ plot(t_exact, threshold_632, 'ko', 'MarkerFaceColor', 'k', 'HandleVisibility', '
 tau_graphical = 0.025;
 
 text(t_exact + 0.01, threshold_632 - 0.5, sprintf('63.2%% (\\tau_{grafisch} \\approx %.3fs)', tau_graphical), 'FontSize', 10);
-%% 4. LLS met Low-Pass Filter (Gefilterd Model)
+
+%% 4. LLS met Low-Pass Filter (Gefilterd Model) BOTH INPUT AND OUTPUT
 % -------------------------------------------------------------------------
+fprintf('low-pass input and ouput -------------------------------------------\n');
 % Bepaal cutoff gebaseerd op tau
 f_max = 1 / (2 * pi * tau_unfilt);
 cutoff = 1.5 * f_max;
@@ -182,10 +184,87 @@ sys_filt = tf(Num_filt, Den_filt, Ts);
 
 tau_f = -Ts / log(-a1_f);
 K_f = b1_f / (1 + a1_f);
-fprintf('GEFILTERD Model:\n');
+fprintf('GEFILTERD Model (INPUT AND OUTPUT):\n');
 fprintf('a1 = %.4f, b1 = %.4f => tau = %.4fs, K = %.4f\n', a1_f, b1_f, tau_f, K_f);
 
-omega_sim_filt = lsim(sys_filt, u_t, t);
+omega_sim_both = lsim(sys_filt, u_t, t);
+
+%% 4b. LLS met Low-Pass Filter (Gefilterd Model) ONLY OUTPUT
+% -------------------------------------------------------------------------
+fprintf('low-pass only ouput ------------------------------------------------\n');
+% Bepaal cutoff gebaseerd op tau
+f_max = 1 / (2 * pi * tau_unfilt);
+cutoff = 1.5 * f_max;
+fprintf('Filter frequenties:\n');
+fprintf('f_max = %.4f Hz, f_cutoff = %.4f Hz\n\n', f_max, cutoff);
+
+% 2de orde Butterworth
+[B_filt, A_filt] = butter(2, cutoff / (fs/2)); 
+
+omega_filt = filtfilt(B_filt, A_filt, omega_mean); 
+
+Y_filt = omega_filt(3:end);
+Phi_filt = [-omega_filt(2:end-1), u_mean(1:end-2)];
+
+theta_filt = Phi_filt \ Y_filt; % [a1; b1]
+a1_f = theta_filt(1);
+b1_f = theta_filt(2);
+
+Num_filt = [0, b1_f];
+Den_filt = [1, a1_f, 0];
+sys_filt = tf(Num_filt, Den_filt, Ts);
+
+tau_f = -Ts / log(-a1_f);
+K_f = b1_f / (1 + a1_f);
+fprintf('GEFILTERD Model (ONLY OUTPUT):\n');
+fprintf('a1 = %.4f, b1 = %.4f => tau = %.4fs, K = %.4f\n', a1_f, b1_f, tau_f, K_f);
+
+omega_sim_output = lsim(sys_filt, u_t, t);
+
+RMSE_both = sqrt(mean((omega_A - omega_sim_both).^2));
+RMSE_output = sqrt(mean((omega_A - omega_sim_output).^2));
+
+fprintf('RMSE (input + output filtered) = %.4f rad/s\n', RMSE_both);
+fprintf('RMSE (output only filtered)    = %.4f rad/s\n', RMSE_output);
+
+%% %% 4c. LLS met Sanathanan-Koerner (SK) Iteratief Filter
+% -------------------------------------------------------------------------
+fprintf('SK -----------------------------------------------------------------\n');
+n_iter = 3; % Drie iteraties is meestal ruim voldoende voor convergentie
+a1_sk = a1; % Start met de ongefilterde a1 (uit sectie 3)
+b1_sk = b1; % Start met de ongefilterde b1 (uit sectie 3)
+
+for i = 1:n_iter
+    % Definieer het iteratieve filter H_f = 1 / A_prev
+    A_prev = [1, a1_sk]; 
+    
+    % Filter de gemiddelde input en output signalen
+    omega_sk_filt = filter(1, A_prev, omega_mean);
+    u_sk_filt     = filter(1, A_prev, u_mean);
+    
+    % LLS opstelling met de gefilterde data
+    Y_sk = omega_sk_filt(3:end);
+    Phi_sk = [-omega_sk_filt(2:end-1), u_sk_filt(1:end-2)];
+    
+    % Schat nieuwe parameters
+    theta_sk = Phi_sk \ Y_sk;
+    a1_sk = theta_sk(1);
+    b1_sk = theta_sk(2);
+    
+    tau_sk = -Ts / log(-a1_sk);
+    K_sk = b1_sk / (1 + a1_sk);
+    fprintf('Iteratie %d: a1 = %.4f, b1 = %.4f => tau = %.4fs, K = %.4f\n', i, a1_sk, b1_sk, tau_sk, K_sk);
+end
+
+% Simuleer het resulterende SK model op de volledige tijdreeks
+sys_sk = tf([0, b1_sk], [1, a1_sk, 0], Ts);
+omega_sim_sk = lsim(sys_sk, u_t, t);
+
+% Foutberekening (RMSE) ter vergelijking
+RMSE_unfilt = sqrt(mean((omega_A - omega_sim_unfilt).^2));
+RMSE_sk = sqrt(mean((omega_A - omega_sim_sk).^2));
+fprintf('RMSE (Ongefilterd) = %.4f rad/s\n', RMSE_unfilt);
+fprintf('RMSE (SK model)    = %.4f rad/s\n\n', RMSE_sk);
 
 %% 5. Vergelijking en Validatie Plots
 % -------------------------------------------------------------------------
@@ -196,22 +275,36 @@ sgtitle('Model Validation (Motor A) – Filtered Model');
 subplot(3,1,1);
 plot(t, omega_A, 'k', 'LineWidth', 1); hold on;
 plot(t, omega_sim_unfilt, 'r--', 'LineWidth', 1.5);
-plot(t, omega_sim_filt, 'b:', 'LineWidth', 1.5);
-legend('Empirical', 'Unfiltered model', 'Filtered model', 'Location', 'SouthEast');
+plot(t, omega_sim_both, 'b:', 'LineWidth', 1.5);
+plot(t, omega_sim_sk, 'g-.', 'LineWidth', 1.5);
+legend('Empirical', 'Unfiltered model', 'Low-pass filter model', 'SK model', 'Location', 'SouthEast');
 xlabel('Time [s]'); ylabel('\omega_A [rad/s]'); axis tight; grid on;
 
 % Subplot 2: Zoom (nu netjes op (3,1,2) i.p.v. 4,1,2)
 subplot(3,1,2);
 plot(t, omega_A, 'k', 'LineWidth', 1); hold on;
 plot(t, omega_sim_unfilt, 'r--', 'LineWidth', 1.5);
-plot(t, omega_sim_filt, 'b:', 'LineWidth', 1.5);
+plot(t, omega_sim_both, 'b:', 'LineWidth', 1.5);
+plot(t, omega_sim_sk, 'g-.', 'LineWidth', 1.5);
 xlim([1.9 2.5]);
-legend('Empirical', 'Unfiltered model', 'Filtered model', 'Location', 'SouthEast');
+legend('Empirical', 'Unfiltered model', 'Low-pass filter model', 'SK model', 'Location', 'SouthEast');
 xlabel('Time [s]'); ylabel('\omega_A [rad/s]'); grid on; title('Zoom on transition');
 
 % Subplot 3: Fouten (nu netjes op (3,1,3) i.p.v. 4,1,3)
 subplot(3,1,3);
 plot(t, omega_A - omega_sim_unfilt, 'r', 'LineWidth', 1); hold on;
-plot(t, omega_A - omega_sim_filt, 'b:', 'LineWidth', 1.5);
-legend('Error unfiltered', 'Error filtered');
+plot(t, omega_A - omega_sim_both, 'b:', 'LineWidth', 1.5);
+plot(t, omega_A - omega_sim_sk, 'g-.', 'LineWidth', 1.5);
+legend('Error unfiltered', 'Error low-pass filter', 'Error SK');
 xlabel('Time [s]'); ylabel('Error [rad/s]'); axis tight; grid on;
+
+%% input filter vs non filter
+figure;
+plot(t(1:points_per_period), u_mean, 'k');
+hold on;
+plot(t(1:points_per_period), u_filt, 'r--');
+legend('Original input', 'Filtered input');
+xlabel('Time [s]');
+ylabel('Input voltage [V]');
+title('Input signal before and after filtering');
+grid on;

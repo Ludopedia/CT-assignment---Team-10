@@ -18,13 +18,13 @@ w_c = fzero(@(w) phase_eq(w) - phi_target, 50);
 fprintf('Cross-over frequency (w_c) : %.4f rad/s\n', w_c);
 
 Ti = tand(90 - APL) / w_c;
-fprintf('Integratietijd (Ti)        : %.4f s\n', Ti);
+fprintf('Integration time (Ti)        : %.4f s\n', Ti);
 
 D_unscaled = (Ti * s + 1) / (Ti * s);
 
 mag_at_wc = abs(squeeze(freqresp(Gs * D_unscaled, w_c)));
 Kp = 1 / mag_at_wc;
-fprintf('Proportionele winst (Kp)   : %.4f\n', Kp);
+fprintf('Proportional gain (Kp)   : %.4f\n', Kp);
 
 Ds = Kp * D_unscaled;
 
