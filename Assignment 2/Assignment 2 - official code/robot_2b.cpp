@@ -47,7 +47,9 @@ void Robot::control() {
         // --- 3. PI-REGELAAR MOTOR A ---
         float error_A = ref_velocity - speed_A;
         integral_error_A += error_A * Ts;
-        u_k_A = Kp_A * error_A + (Kp_A / Ti_A) * integral_error_A;
+        float u_p_A = Kp_A * error_A;
+        float u_i_A = (Kp_A / Ti_A) * integral_error_A;
+        u_k_A = u_p_A + u_i_A;
 
         // Anti-windup Motor A
         if (u_k_A > max_voltage) {
@@ -61,7 +63,9 @@ void Robot::control() {
         // --- 4. PI-REGELAAR MOTOR B ---
         float error_B = ref_velocity - speed_B;
         integral_error_B += error_B * Ts;
-        u_k_B = Kp_B * error_B + (Kp_B / Ti_B) * integral_error_B;
+        float u_p_B = Kp_B * error_B;
+        float u_i_B = (Kp_B / Ti_B) * integral_error_B;
+        u_k_B = u_p_B + u_i_B;
 
         // Anti-windup Motor B
         if (u_k_B > max_voltage) {
@@ -84,6 +88,12 @@ void Robot::control() {
         writeValue(2, speed_B);      // Kanaal 2: Snelheid Motor B
         writeValue(3, u_k_A);        // Kanaal 3: Motorspanning Motor A
         writeValue(4, u_k_B);        // Kanaal 4: Motorspanning Motor B
+        writeValue(5, error_A); // Kanaal 5: Volgfout Motor A
+        writeValue(6, error_B); // Kanaal 6: Volgfout Motor B
+        writeValue(7, u_p_A);   // Kanaal 7: P-bijdrage Motor A (voor vraag 2c)
+        writeValue(8, u_i_A);   // Kanaal 8: I-bijdrage Motor A (voor vraag 2c)
+        writeValue(9, u_p_B);   // Kanaal 9: P-bijdrage Motor B (voor vraag 2c)
+        writeValue(10, u_i_B);  // Kanaal 10: I-bijdrage Motor B (voor vraag 2c)
 
     } else {
         LED1(OFF);
@@ -101,6 +111,12 @@ void Robot::control() {
         writeValue(2, 0.0);
         writeValue(3, 0.0);
         writeValue(4, 0.0);
+        writeValue(5, 0.0);
+        writeValue(6, 0.0);
+        writeValue(7, 0.0);
+        writeValue(8, 0.0);
+        writeValue(9, 0.0);
+        writeValue(10, 0.0);
     }
 }
 
