@@ -34,8 +34,8 @@ void Robot::control() {
         // 1. Referentieprofiel: Eerst 0.5s stilstand, daarna stap naar 5 rad/s
         if (tick < 50) {
             ref_velocity = 0.0; // Eerste 0.5s (50 ticks)
-        } else if (tick < 500) {
-            ref_velocity = 7.0; // Daarna 4.5s lang naar 5 rad/s
+        } else if (tick < 750) {
+            ref_velocity = 7.0; // Daarna 7s lang naar 5 rad/s
         } else {
             ref_velocity = 0.0; // Stop na 5 seconden
         }
