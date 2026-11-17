@@ -14,6 +14,7 @@ phi_target = -180 + PM + APL;
 
 phase_eq = @(w) -atand(w * tau) - (w * Td * 180/pi); 
 w_c = fzero(@(w) phase_eq(w) - phi_target, 50);
+%w_c = pi
 
 fprintf('Cross-over frequency (w_c) : %.4f rad/s\n', w_c);
 

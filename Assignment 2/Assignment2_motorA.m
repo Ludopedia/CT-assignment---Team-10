@@ -22,6 +22,7 @@ phi_target = -180 + PM + APL;
 % Bepaal kruisfrequentie (in het continue equivalent voor de ontwerprichting)
 phase_eq = @(w) -atand(w * tau) - (w * Td * 180/pi); 
 w_c = fzero(@(w) phase_eq(w) - phi_target, 50);
+%w_c = pi
 
 % Bereken integratietijd en proportionele versterking
 Ti = tand(90 - APL) / w_c;

@@ -1,5 +1,5 @@
-#ifndef ROBOT_2A_H
-#define ROBOT_2A_H
+#ifndef ROBOT_H
+#define ROBOT_H
 
 #include "mecotron.h" 
 
