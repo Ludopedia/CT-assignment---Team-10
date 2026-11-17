@@ -30,3 +30,7 @@ Ds = Kp * D_unscaled;
 
 figure;
 margin(Ds * Gs);
+grid on;
+
+% --- Voeg deze regel toe om alle tekst in de figuur groter te maken ---
+set(findall(gcf, '-property', 'FontSize'), 'FontSize', 20);
