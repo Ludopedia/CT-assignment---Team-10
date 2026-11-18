@@ -131,6 +131,13 @@ theta_filt = Phi_filt \ Y_filt;
 sys_filt_both = tf([0, theta_filt(2)], [1, theta_filt(1), 0], Ts);
 omega_sim_both = lsim(sys_filt_both, u_t, t);
 
+a1_filt = theta_filt(1);
+b1_filt = theta_filt(2);
+tau_filt = -Ts / log(-a1_filt);
+K_filt = b1_filt / (1 + a1_filt);
+fprintf('GEFILTERD LOW PASS (Averaged) Model:\n');
+fprintf('a1 = %.4f, b1 = %.4f => tau = %.4fs, K = %.4f\n\n', a1_filt, b1_filt, tau_filt, K_filt);
+
 % 4b. Sanathanan-Koerner (SK) Iterative Filter Method
 n_iter = 3;           % Aantal iteraties (meestal 3 is voldoende voor convergentie)
 a1_sk  = a1;          % Start met de a1 uit het ongefilterde LLS-model
@@ -158,6 +165,13 @@ for i = 1:n_iter
     K_sk   = b1_sk / (1 + a1_sk);
     fprintf('Iteratie %d: a1 = %.4f, b1 = %.4f => tau = %.4fs, K = %.4f\n', i, a1_sk, b1_sk, tau_sk, K_sk);
 end
+
+a1_sk = theta_sk(1);
+b1_sk = theta_sk(2);
+tau_sk = -Ts / log(-a1_sk);
+K_sk = b1_sk / (1 + a1_sk);
+fprintf('SANATHANAN KOERNER (Averaged) Model:\n');
+fprintf('a1 = %.4f, b1 = %.4f => tau = %.4fs, K = %.4f\n\n', a1_sk, b1_sk, tau_sk, K_sk);
 
 % Maak het uiteindelijke SK-modelsysteem en simuleer
 sys_sk       = tf([0, b1_sk], [1, a1_sk, 0], Ts);
