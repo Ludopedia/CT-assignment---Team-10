@@ -1,0 +1,59 @@
+/** MATRICES IN THE STATE ESTIMATION STATE FEEDBACK TEMPLATE
+    (using the BasicLinearAlgebra library) **/
+
+# To create a matrix, you first have to define an array and
+# then define a matrix and assign the array to it.
+# For example:
+
+float arrayA[3][3] = {{ 1.0 , 2.0 , 3.0} ,
+                      { 4.0 , 5.0 , 6.0} ,
+                      { 7.0 , 8.0 , 9.0}};
+
+# Now, you can convert an array to a matrix.
+# For example:
+
+Matrix<3,3> A = arrayA; 
+
+# Also vectors are allowed.
+# For example:
+
+float arrayB[3] = {10.0 , 11.0 , 12.0};
+Matrix<3> vectorB1 = arrayB;
+Matrix<3,1> vectorB2 = arrayB;  # this is the same as the previous line
+
+# You can obtain the numbers in a matrix by using indices. 
+# Don't forget that indexing starts at 0 in C++!
+# For example:
+
+float a22 = A(2,2);
+
+# Similarly, you could also assign numbers to the matrix.
+# For example:
+
+float c = 10.0; 
+A(1,2) = c;
+
+# The main purpose of using these Matrix objects is that they allow for
+# basic linear algebraic operations that are not supported in standard C++.
+# Manually implementing these would lead to very complex and ugly code. 
+# For the State Estimation and State Feedback assignment,
+# you'll mainly need these three:
+
+# 1. Multiplication:
+
+Matrix<3> product = A*vectorB1;
+
+# 2. Sums and differences:
+
+Matrix<3> difference = vectorB1 - vectorB2;
+
+# 3. Transposes and inverses:
+
+Matrix<3,3> invA = A.Inverse(); 
+Matrix<1,3> transpB = vectorB2.Transpose(); 
+
+# Just as for any other object, never forget to initialize your matrices.
+# If you want to do this with zeros, this is easily done using the Fill command:
+
+Matrix<4,7> C; # uninitialized matrix 
+C.Fill(0);     # filled with zeros now
