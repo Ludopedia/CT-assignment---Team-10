@@ -187,6 +187,7 @@ plot(t_meas, speed_A, 'k:', 'LineWidth', 1.0);
 grid on;
 
 xlim([4 7]);
+ylim([-1 11]);
 set(gca, 'FontSize', 9);
 xlabel('Time [s]', 'FontSize', 10);
 ylabel('\omega_A [rad/s]', 'FontSize', 10);
@@ -204,6 +205,7 @@ plot(t_meas, speed_B, 'k:', 'LineWidth', 1.0);
 grid on;
 
 xlim([4 7]);
+ylim([-1 11]);
 set(gca, 'FontSize', 9);
 xlabel('Time [s]', 'FontSize', 10);
 ylabel('\omega_B [rad/s]', 'FontSize', 10);
