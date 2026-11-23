@@ -35,9 +35,9 @@ void Robot::control() {
         if (tick < 50) {
             ref_velocity = 0.0; // Eerste 0.5s (50 ticks)
         } else if (tick < 600) {
-            ref_velocity = 5.0; // Daarna 7s lang naar 5 rad/s
+            ref_velocity = 7.0; // Daarna 7s lang naar 7 rad/s
         } else {
-            ref_velocity = 0.0; // Stop na 5 seconden
+            ref_velocity = 0.0; // Stop na 7 seconden
         }
 
         // 2. Metingen inlezen per motor
